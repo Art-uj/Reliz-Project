@@ -4,12 +4,12 @@ import random
 
 pygame.init()
 
-# Налаштування вікна
+
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Механічний сутінок")
 
-# Колір
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (100, 100, 100)
@@ -17,10 +17,9 @@ RED = (200, 50, 50)
 GREEN = (50, 200, 50)
 YELLOW = (255, 255, 0)
 
-# Завантаження шрифтів
 font = pygame.font.Font(None, 36)
 
-# Завантаження звуків
+
 pygame.mixer.music.load("background.mp3")
 pygame.mixer.music.play(-1)
 
@@ -28,7 +27,7 @@ jump_sound = pygame.mixer.Sound("jump.wav")
 hit_sound = pygame.mixer.Sound("hit.wav")
 collect_sound = pygame.mixer.Sound("collect.wav")
 
-# Параметри гравця
+
 player_size = (40, 60)
 player_speed = 5
 jump_power = -15
@@ -36,7 +35,7 @@ gravity = 0.5
 player_lives = 3
 level_count = 0
 
-# Клас Гравця
+
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -72,7 +71,7 @@ class Player(pygame.sprite.Sprite):
             self.on_ground = False
             jump_sound.play()
 
-# Клас Платформи
+
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
         super().__init__()
@@ -82,7 +81,7 @@ class Platform(pygame.sprite.Sprite):
     
     
 
-# Клас Ворога
+
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -97,7 +96,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.rect.left < 50 or self.rect.right > WIDTH - 50:
             self.direction *= -1
 
-# Клас Ресурсу
+
 class Resource(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -108,7 +107,7 @@ class Resource(pygame.sprite.Sprite):
             pass
 
     
-# Клас Боса
+
 class Boss(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -136,7 +135,7 @@ class Boss(pygame.sprite.Sprite):
             hit_sound.play()
             print(f"Бос атакує! HP гравця: {player.lives}")
 
-# Генерація рівня
+
 def generate_level():
     global level_count
     level_count += 1
@@ -164,7 +163,6 @@ def generate_level():
 
     return platforms, enemies, resources
 
-# Функція переходу на новий рівень
 def next_level():
     global platforms, enemies, resources, boss, level_count
 
@@ -185,7 +183,7 @@ def next_level():
 
 
 
-# Основний цикл гри
+
 clock = pygame.time.Clock()
 player = Player()
 platforms, enemies, resources = generate_level()

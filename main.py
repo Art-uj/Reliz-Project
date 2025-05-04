@@ -1,15 +1,14 @@
-
 import pygame
 import random
 
 pygame.init()
 
-
+# Розміри екрану
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Механічний сутінок")
 
-
+# Кольори
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (100, 100, 100)
@@ -17,25 +16,27 @@ RED = (200, 50, 50)
 GREEN = (50, 200, 50)
 YELLOW = (255, 255, 0)
 
+# Шрифт
 font = pygame.font.Font(None, 36)
 
-
+# Музика та звуки
 pygame.mixer.music.load("background.mp3")
 pygame.mixer.music.play(-1)
 
 jump_sound = pygame.mixer.Sound("jump.wav")
 hit_sound = pygame.mixer.Sound("hit.wav")
 collect_sound = pygame.mixer.Sound("collect.wav")
-
-
+backgroung = pygame.image.load("background.jpg")
+    
+# Параметри гравця
 player_size = (40, 60)
 player_speed = 5
 jump_power = -15
-gravity = 0.5
-player_lives = 3
+gravity = 0.4
+player_lives = 5
 level_count = 0
 
-
+# Клас гравця
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -47,6 +48,8 @@ class Player(pygame.sprite.Sprite):
         self.on_ground = False
         self.lives = player_lives
         self.resources = 0
+        self.last_hit_time = 0
+        self.invincible_duration = 2000
 
     def update(self):
         self.vel_y += gravity
@@ -71,17 +74,15 @@ class Player(pygame.sprite.Sprite):
             self.on_ground = False
             jump_sound.play()
 
-
+# Платформа
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
         super().__init__()
         self.image = pygame.Surface((width, height))
         self.image.fill(GRAY)
         self.rect = self.image.get_rect(topleft=(x, y))
-    
-    
 
-
+# Ворог
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -96,28 +97,25 @@ class Enemy(pygame.sprite.Sprite):
         if self.rect.left < 50 or self.rect.right > WIDTH - 50:
             self.direction *= -1
 
-
+# Ресурс
 class Resource(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = pygame.Surface((20, 20))
         self.image.fill(GREEN)
         self.rect = self.image.get_rect(center=(x, y))
-    def update(self):
-            pass
 
-    
-
+# Бос
 class Boss(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.Surface((100, 100))
         self.image.fill(YELLOW)
         self.rect = self.image.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-        self.hp = 7
+        self.hp = 70
         self.speed = 2
         self.direction = 1
-        self.attack_timer = 0  
+        self.attack_timer = 0
 
     def update(self):
         self.rect.x += self.direction * self.speed
@@ -135,7 +133,7 @@ class Boss(pygame.sprite.Sprite):
             hit_sound.play()
             print(f"Бос атакує! HP гравця: {player.lives}")
 
-
+# Генерація рівня
 def generate_level():
     global level_count
     level_count += 1
@@ -163,13 +161,14 @@ def generate_level():
 
     return platforms, enemies, resources
 
+# Перехід на наступний рівень
 def next_level():
     global platforms, enemies, resources, boss, level_count
 
-    level_count += 1  
+    level_count += 1
     all_sprites.empty()
 
-    if level_count % 3 == 0:  
+    if level_count % 3 == 0:
         boss = Boss()
         enemies = pygame.sprite.Group(boss)
         resources = pygame.sprite.Group()
@@ -177,18 +176,61 @@ def next_level():
         platforms, enemies, resources = generate_level()
         boss = None
 
-    all_sprites.add(player, platforms, enemies, resources)  
+    all_sprites.add(player, platforms, enemies, resources)
     player.rect.midbottom = (WIDTH//2, HEIGHT-100)
     player.resources = 0
 
+# Показати меню перед грою
+def show_menu():
+    start_time = pygame.time.get_ticks()
+    menu_duration = 15000  # 15 секунд
+    waiting = True
 
+    while waiting:
+        screen.fill(BLACK)
 
+        title = font.render("Механічний сутінок", True, WHITE)
+        control1 = font.render("A / D - рух вліво / вправо", True, WHITE)
+        control2 = font.render("SPACE - стрибок", True, WHITE)
+        control3 = font.render("C - атакувати боса", True, WHITE)
+        control4 = font.render("R - перезапуск гри", True, WHITE)
 
+        elapsed_time = pygame.time.get_ticks() - start_time
+        remaining_time = max(0, (menu_duration - elapsed_time) // 1000)
+        timer_text = font.render(f"Гра почнеться через: {remaining_time} с", True, YELLOW)
+
+        tip = font.render("Натисни будь-яку клавішу для старту!", True, GRAY)
+
+        screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
+        screen.blit(control1, (WIDTH // 2 - control1.get_width() // 2, 200))
+        screen.blit(control2, (WIDTH // 2 - control2.get_width() // 2, 250))
+        screen.blit(control3, (WIDTH // 2 - control3.get_width() // 2, 300))
+        screen.blit(control4, (WIDTH // 2 - control4.get_width() // 2, 350))
+        screen.blit(timer_text, (WIDTH // 2 - timer_text.get_width() // 2, 420))
+        screen.blit(tip, (WIDTH // 2 - tip.get_width() // 2, 470))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                waiting = False
+
+        if elapsed_time > menu_duration:
+            waiting = False
+
+        clock.tick(60)
+
+# Головний код
 clock = pygame.time.Clock()
 player = Player()
 platforms, enemies, resources = generate_level()
 boss = None
 all_sprites = pygame.sprite.Group(player, platforms, enemies, resources)
+
+show_menu()
 
 running = True
 while running:
@@ -197,6 +239,18 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+    current_time = pygame.time.get_ticks()
+    for enemy in enemies:
+        if player.rect.colliderect(enemy.rect):
+            if current_time - player.last_hit_time > player.invincible_duration:
+                player.lives -= 1
+                if player.lives <= 0:
+                    print("Гру завершено!")
+                    running = False
+                player.last_hit_time = current_time
+                hit_sound.play()
+                print(f"Гравець отримав удар! HP: {player.lives}")
 
     keys = pygame.key.get_pressed()
     player.vel_x = 0
@@ -212,7 +266,7 @@ while running:
     if boss:
         boss.update()
 
-    if keys[pygame.K_SPACE] and boss:
+    if keys[pygame.K_c] and boss:
         boss.hp -= 1
         print(f"Бос отримав удар! HP боса: {boss.hp}")
         if boss.hp <= 0:
@@ -233,6 +287,12 @@ while running:
     res_text = font.render(f"Ресурси: {player.resources}", True, WHITE)
     screen.blit(hp_text, (10, 10))
     screen.blit(res_text, (10, 50))
+
+    if keys[pygame.K_r]:
+        player = Player()
+        platforms, enemies, resources = generate_level()
+        boss = None
+        all_sprites = pygame.sprite.Group(player, platforms, enemies, resources)
 
     pygame.display.flip()
     clock.tick(60)

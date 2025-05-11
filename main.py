@@ -27,7 +27,7 @@ jump_sound = pygame.mixer.Sound("jump.wav")
 hit_sound = pygame.mixer.Sound("hit.wav")
 collect_sound = pygame.mixer.Sound("collect.wav")
 backgroung = pygame.image.load("background.jpg")
-    
+
 # Параметри гравця
 player_size = (40, 60)
 player_speed = 5
